@@ -1,0 +1,39 @@
+{
+    "name": "netflux-bot",
+    "version": "0.1.0",
+    "description": "Peer machine able to connect to a network handled by netflux API",
+    "main": "server.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "commit": "git-cz",
+        "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/coast-team/netflux-bot.git"
+    },
+    "keywords": [
+        "Netflux",
+        "Peer-to-Peer",
+        "Bot"
+    ],
+    "author": "Thomas Le Saux <thomas.le-saux@telecomnancy.eu>",
+    "license": "AGPL-3.0",
+    "bugs": {
+        "url": "https://github.com/coast-team/netflux-bot/issues"
+    },
+    "homepage": "https://github.com/coast-team/netflux-bot#readme",
+    "dependencies": {
+        "netflux": "file:///home/thomas/netflux",
+        "text-encoding": "^0.6.0",
+        "ws": "^1.1.0"
+    },
+    "devDependencies": {
+        "cz-conventional-changelog": "^1.1.6"
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
+    }
+}
