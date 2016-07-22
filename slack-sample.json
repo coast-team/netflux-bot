@@ -1,0 +1,4 @@
+{
+  "token": "SLACK_ACCESS_TOKEN",
+  "webhookUrl": "WEBHOOK_URL"
+}

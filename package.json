@@ -25,9 +25,12 @@
   },
   "homepage": "https://github.com/coast-team/netflux-bot#readme",
   "dependencies": {
+    "botkit": "^0.2.2",
     "mongoose": "^4.5.2",
-    "netflux": "file:///home/thomas/netflux",
+    "netflux": "^0.9.0",
+    "node-geocoder": "^3.13.0",
     "text-encoding": "^0.6.0",
+    "twitter": "^1.3.0",
     "ws": "^1.1.0"
   },
   "devDependencies": {

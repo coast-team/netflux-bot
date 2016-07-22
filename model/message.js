@@ -39,7 +39,20 @@ function nbMessages () {
   })
 }
 
+function getAllData () {
+  return new Promise((resolve, reject) => {
+    var messages = []
+    Message.find(null).exec((err, res) => {
+      if (err) reject(err)
+      messages = res
+    }).onResolve(() => {
+      resolve(messages)
+    })
+  })
+}
+
 exports.Message = Message
 exports.saveMsg = saveMsg
 exports.saveMessages = saveMessages
 exports.nbMessages = nbMessages
+exports.getAllData = getAllData
