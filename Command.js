@@ -48,17 +48,8 @@ class Command {
       this.getArgs().forEach((arg, index, array) => {
         if (arg.match('-(h|help)')) help = true
       })
-      let msgs = []
-      if (help) {
-        msgs.push('Help for the command {/server}:',
-        '{/server} Command to verify the status of the bot server',
-        '{/server -h} or {/server -help} Display this message')
-      } else {
-        msgs.push('I\'m here waiting for your commands [saving = ' + this.getSave() + ']')
-      }
-      msgs.forEach((msg, index, array) => {
-        this.send(msg)
-      })
+      if (help) this.helpServer()
+      else this.send('I\'m here waiting for your commands [saving = ' + this.getSave() + ']')
       resolve()
     })
   }
@@ -73,10 +64,7 @@ class Command {
       })
       let msgs = []
       if (help) {
-        msgs.push('Help for the command {/save}:',
-          '{/save} Command to start saving message in a database',
-          '{/save -s} or {/save -stop} Command to stop saving message in a database',
-          '{/save -h} or {/save -help} Display this message')
+        this.helpSave()
         if (this.getSave() && stop) {
           msgs.push('I will stop saving all now')
           this.setSave(false)
@@ -86,12 +74,55 @@ class Command {
         if (this.getSave() && stop) msgs.push('I will stop saving all now')
         this.setSave(!stop)
       }
-      msgs.forEach((msg, index, array) => {
-        this.send(msg)
-      })
+      this.sendArray(msgs)
       resolve()
     })
   }
+
+  // TODO
+  // case 'saved_data':
+  //   MessageModel.getAllData().then((messages) => {
+  //     let nbMsg = messages.length
+  //     send('I have saved ' + nbMsg + ' messages')
+  //     messages.forEach((msg, index) => {
+  //       console.log(msg)
+  //       let cpt = (nbMsg >= 10 && index < 9) ? '(0' : '('
+  //       cpt += (index + 1) + '/' + nbMsg + ')'
+  //       let content = (netfluxChat) ? msg.data.content : msg.content
+  //       let date = formatDate(msg.date)
+  //       switch(msg.label){
+  //         case MESSAGE:
+  //           send(cpt + ' [' + date + '] [From ' + msg.fromId + '] Message: ' + content)
+  //           break
+  //         case COMMAND:
+  //           send(cpt + ' [' + date + '] [From ' + msg.fromId + '] Command: ' + content)
+  //           break
+  //         case JOIN:
+  //           send(cpt + ' [' + date + '] Join: ' + content)
+  //           break
+  //         case LEAVE:
+  //           send(cpt + ' [' + date + '] Leave: ' + content)
+  //           break
+  //       }
+  //     })
+  //   })
+  //   break
+
+  // let formatDate = (date) => {
+  //   let day = date.getDate()
+  //   day = (day < 10) ? '0' + day : day
+  //   let month = (date.getMonth() + 1)
+  //   month = (month < 10) ? '0' + month : month
+  //   let year = date.getFullYear()
+  //   let hours = date.getHours()
+  //   hours = (hours < 10) ? '0' + hours : hours
+  //   let minutes = date.getMinutes()
+  //   minutes = (minutes < 10) ? '0' + minutes : minutes
+  //   let seconds = date.getSeconds()
+  //   seconds = (seconds < 10) ? '0' + seconds : seconds
+  //   return '' + day + '/' + month + '/' + year + ' ' +
+  //     hours + ':' + minutes + ':' + seconds
+  // }
 
   cmdKick () {
     return new Promise((resolve, reject) => {
@@ -99,15 +130,8 @@ class Command {
       this.getArgs().forEach((arg, index, array) => {
         if (arg.match('-(h|help)')) help = true
       })
-      let msgs = []
-      if (help) {
-        msgs.push('Help for the command {/kick}:',
-          '{/kick} Command to kick the bot server from the WebChannel',
-          '{/kick -h} or {/kick -help} Display this message')
-      } else msgs.push('Ok I leave...')
-      msgs.forEach((msg, index, array) => {
-        this.send(msg)
-      })
+      if (help) this.helpKick()
+      else this.send('Ok I leave...')
       if (!help) this.getBot().leave(this.getWebChannel())
       resolve()
     })
@@ -122,12 +146,10 @@ class Command {
         '{/kick} Command to kick the bot server from the WebChannel',
         '{/twitter} Command to stream messages from Twitter',
         '{/location} Command to get coordinates of an address',
-        '{/slack} Command to stream and send message from Slack',
+        '{/slack} Command to stream and send message from and to Slack',
         '{/help} Command that displays this help'
       ]
-      msgs.forEach((msg, index, array) => {
-        this.send(msg)
-      })
+      this.sendArray(msgs)
       resolve()
     })
   }
@@ -155,16 +177,7 @@ class Command {
             })
         } else ts.close()
       } else {
-        let msgs = [
-          'Help for the command {/twitter}:',
-          '{/twitter -u USER} or {/twitter -user USER} Command to stream all messages post by {USER}',
-          '{/twitter -q QUERY} or {/twitter -query QUERY} Command to stream all messages which contains {QUERY}',
-          '{/twitter -s} or {/twitter -stop} Command to stop streaming all messages',
-          '{/twitter -h} or {/twitter -help} Display this message'
-        ]
-        msgs.forEach((msg, index, array) => {
-          this.send(msg)
-        })
+        this.helpTwitter()
         resolve()
       }
     })
@@ -186,14 +199,7 @@ class Command {
             resolve()
           })
       } else {
-        let msgs = [
-          'Help for the command {/location}:',
-          '{/location ADDRESS} Command to get the coordinates of the {ADDRESS}',
-          '{/location -h} or {/location -help} Display this message'
-        ]
-        msgs.forEach((msg, index, array) => {
-          this.send(msg)
-        })
+        this.helpLocation()
         resolve()
       }
     })
@@ -203,50 +209,40 @@ class Command {
     let first = (this.getSlackStream() === null)
     return new Promise((resolve, reject) => {
       let help = false
+      let stop = false
       let message = (!first) ? '' : 'Hello I\'m a bot'
       let channel = '#test'
       let users = this.getUsers()
       this.getArgs().forEach((arg, index, array) => {
         if (arg.match('-(h|help)')) help = true
         else if (arg.match('-(m|message)')) {
-          message = (array[index + 1].indexOf('\"') > -1)
-            ? array[index + 1].slice(1, array.length - 1)
+          message = (array[index + 1].indexOf('\"') > -1) ? array[index + 1].slice(1, array.length - 1)
             : array[index + 1]
         }
         else if (arg.match('-(c|channel)')) {
-          channel = (array[index + 1].indexOf('\#') > -1)
-            ? array[index + 1]
+          channel = (array[index + 1].indexOf('\#') > -1) ? array[index + 1]
             : "#" + array[index + 1]
         }
         else if (arg.match('-(u|user)')) this.setUser(this.getfromId(), array[index + 1])
+        else if (arg.match('-(s|stop)')) stop = true
       })
       if (!help) {
-        let slack = (!first)
-          ? this.getSlackStream()
+        let slack = (!first) ? this.getSlackStream()
           : new SlackStream({message, channel, users, send: this.settings.send})
-        if (first) {
-          slack.launch()
-          .then(() => {
-            this.send('Listen and send all message from and to channel {' +
-            slack.getChannel() + '}')
-            this.setSlackStream(slack)
-            resolve()
-          })
-          .catch((reason) => console.log(reason))
-        } else if (message !== '') slack.sendToSlack({message, channel, users, id: this.getfromId()})
-      } else {
-        let msgs = [
-          'Help for the command {/slack}:',
-          '{/slack -m} or {/slack -message} Command to send a {MESSAGE} on slack',
-          '{/slack -c} or {/slack -channel} Command to change the channel ' +
-          'where the messages are send (default = #general)',
-          '{/slack -h} or {/slack -help} Display this message'
-        ]
-        msgs.forEach((msg, index, array) => {
-          this.send(msg)
-        })
-        resolve()
-      }
+        if (!stop) {
+          if (first) {
+            slack.launch().then(() => {
+              this.send('Listen and send all message from and to channel {' + slack.getChannel() + '}')
+              this.setSlackStream(slack)
+              resolve()
+            }).catch((reason) => console.log(reason))
+          } else if (message !== '') slack.sendToSlack({message, channel, users, id: this.getfromId()})
+        } else {
+          slack.close()
+          this.setSlackStream(null)
+        }
+      } else this.helpSlack()
+      resolve()
     })
   }
 
@@ -254,6 +250,73 @@ class Command {
     return new Promise((resolve, reject) => {
       this.send('Unknown command {/' + this.getName() + '}')
       resolve()
+    })
+  }
+
+  helpServer () {
+    let msgs = [
+      'Help for the command {/server}:',
+      '{/server} Command to verify the status of the bot server',
+      '{/server -h} or {/server -help} Display this message'
+    ]
+    this.sendArray(msgs)
+  }
+
+  helpSave () {
+    let msgs = [
+      'Help for the command {/save}:',
+      '{/save} Command to start saving message in a database',
+      '{/save -s} or {/save -stop} Command to stop saving message in a database',
+      '{/save -h} or {/save -help} Display this message'
+    ]
+    this.sendArray(msgs)
+  }
+
+  helpKick () {
+    let msgs = [
+      'Help for the command {/kick}:',
+      '{/kick} Command to kick the bot server from the WebChannel',
+      '{/kick -h} or {/kick -help} Display this message'
+    ]
+    this.sendArray(msgs)
+  }
+
+  helpTwitter () {
+    let msgs = [
+      'Help for the command {/twitter}:',
+      '{/twitter -u USER} or {/twitter -user USER} Command to stream all messages post by {USER}',
+      '{/twitter -q QUERY} or {/twitter -query QUERY} Command to stream all messages which contains {QUERY}',
+      '{/twitter -s} or {/twitter -stop} Command to stop streaming all messages',
+      '{/twitter -h} or {/twitter -help} Display this message'
+    ]
+    this.sendArray(msgs)
+  }
+
+  helpLocation () {
+    let msgs = [
+      'Help for the command {/location}:',
+      '{/location ADDRESS} Command to get the coordinates of the {ADDRESS}',
+      '{/location -h} or {/location -help} Display this message'
+    ]
+    this.sendArray(msgs)
+  }
+
+  helpSlack () {
+    let msgs = [
+      'Help for the command {/slack}:',
+      '{/slack} Command to start sending and listenning messages to and from Slack',
+      '{/slack -m} or {/slack -message} Command to send a {MESSAGE} on slack',
+      '{/slack -c} or {/slack -channel} Command to change the channel ' +
+      'where the messages are send (default = #general)',
+      '{/slack -s} or {/slack -stop} Command to stop sending and listenning messages to and from Slack',
+      '{/slack -h} or {/slack -help} Display this message'
+    ]
+    this.sendArray(msgs)
+  }
+
+  sendArray (arr) {
+    arr.forEach((msg, index, array) => {
+      this.send(msg)
     })
   }
 

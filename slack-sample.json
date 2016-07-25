@@ -1,4 +1,5 @@
 {
-  "token": "SLACK_ACCESS_TOKEN",
+  "tokenRTM": "SLACK_ACCESS_TOKEN_RTM",
+  "tokenWeb": "SLACK_ACCESS_TOKEN_WEB",
   "webhookUrl": "WEBHOOK_URL"
 }

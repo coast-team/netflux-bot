@@ -1,24 +1,18 @@
 var fs =  require('fs')
+var request = require('request')
 
-if (!process.env.SLACK_ACCESS_TOKEN) {
+if (!process.env.SLACK_ACCESS_TOKEN_RTM) {
   if (!fs.existsSync('twitter.json')) {
     console.log('Create a slack.json with your credentials based on the slack-sample.json file.')
     process.exit(1)
   } else {
-    process.env.SLACK_ACCESS_TOKEN = require('./slack').token
+    process.env.SLACK_ACCESS_TOKEN_RTM = require('./slack').tokenRTM
+    process.env.SLACK_ACCESS_TOKEN_WEB = require('./slack').tokenWeb
     process.env.WEBHOOK_URL = require('./slack').webhookUrl
   }
 }
 
 var Botkit = require('botkit')
-var controller = Botkit.slackbot()
-
-var bot = controller.spawn({
-  token: process.env.SLACK_ACCESS_TOKEN,
-  incoming_webhook: {
-    url: process.env.WEBHOOK_URL
-  }
-})
 
 class SlackStream {
   constructor (options = {}) {
@@ -29,12 +23,19 @@ class SlackStream {
       send: null,
       id: 0
     }
+    this.controller = Botkit.slackbot()
+    this.bot = this.controller.spawn({
+      token: process.env.SLACK_ACCESS_TOKEN_RTM,
+      incoming_webhook: {
+        url: process.env.WEBHOOK_URL
+      }
+    })
     this.settings = Object.assign({}, this.defaults, options)
   }
 
   startRTM () {
     return new Promise((resolve, reject) => {
-      bot.startRTM((err, bot, payload) => {
+      this.bot.startRTM((err, bot, payload) => {
         if (err) reject('Could not connect to Slack')
         resolve()
       })
@@ -46,25 +47,26 @@ class SlackStream {
       this.startRTM()
         .then(() => this.sendToSlack())
         .then(() => resolve())
-
-      // reply to a direct mention - @bot hello
-      controller.on('direct_mention', (bot, message) => {
-        // reply to _message_ by using the _bot_ object
-        console.log('direct_mention: ', message)
-        bot.reply(message,'I heard you mention me!')
+      this.controller.on('ambient', (bot, message) => {
+        this.getUserInfos(message.user)
+          .then((data) => {
+            this.send('[From Slack] [From ' + data.user.name + '] ' + message.text)
+          })
       })
+    })
+  }
 
-      // reply to a direct message
-      controller.on('direct_message',function(bot,message) {
-        // reply to _message_ by using the _bot_ object
-        console.log('direct_message: ', message)
-        bot.reply(message,'You are talking directly to me')
-      })
+  close () {
+    this.bot.closeRTM()
+  }
 
-      controller.on('ambient', (bot, message) => {
-        // console.log(message)
-        this.send('[From Slack] [From ' + message.user + '] ' + message.text)
-        // console.log('ambient: ', message)
+  getUserInfos (userId) {
+    return new Promise((resolve, reject) => {
+      let url = 'https://slack.com/api/users.info?token=' + process.env.SLACK_ACCESS_TOKEN_WEB +
+      '&user=' + userId + '&pretty=1'
+      let user
+      request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) resolve(JSON.parse(body))
       })
     })
   }
@@ -72,11 +74,11 @@ class SlackStream {
   sendToSlack (options = {}) {
     this.settings = Object.assign({}, this.settings, options)
     let user = this.getUsers().get(this.getId()) || this.getId()
-    let text = (user !== 0) ? '[From ' + user + '] ' : ''
+    let text = (user !== 0) ? '[From netfluxChat] [From ' + user + '] ' : ''
     text += this.getMessage()
     let channel = this.getChannel()
     return new Promise((resolve, reject) => {
-      bot.sendWebhook({text, channel}, (err,res) => {
+      this.bot.sendWebhook({text, channel}, (err,res) => {
         if (err) reject('Could not send a message to Slack')
         this.send('[Send to Slack] ' + text)
         resolve()

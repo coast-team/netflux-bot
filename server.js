@@ -46,14 +46,15 @@ mongoose.connection.on('connected', () => {
     })
 
   bot.onWebChannel = (wc) => {
-    let id = wc.id
-    // For Netflux-Chat
+    let id = wc.myId
+
     let send = (msg, toIdUser) => {
       if (netfluxChat) {
-        var message = {'type': 'message', 'data': {'fromIdUser': id, 'toIdUser': toIdUser || '0', 'content': msg,
-        'date': Date.now()}}
+        var message = {'type': 'message', 'data': {'fromIdUser': id, 'toIdUser': toIdUser || '0',
+        'content': msg, 'date': Date.now()}}
         wc.send(JSON.stringify(message))
       } else wc.send(msg)
+      if (save) MessageModel.saveMsg(new MessageModel.Message({label: MESSAGE, content: msg, fromId: id}))
     }
 
     let hello = () => {
@@ -75,13 +76,20 @@ mongoose.connection.on('connected', () => {
     }
 
     let analyse = (str, fromId) => {
+      let label = MESSAGE
       let regexCommands = /\/(\w+)\s*((?:(?:([\w\d]|\#)+|\"([^"]|\')+\"|-\w+)\s*)*)/g
       let regexArguments = /(?:([\w\d]|\#)+|\"([^"]|\')+\"|-\w+)/g
       let commands = str.match(regexCommands)
       if (commands) {
         commands.forEach((cmd, index, array) => {
+          label = COMMAND
           let args = cmd.match(regexArguments)
           let name = args.splice(0, 1)[0]
+          if (save) {
+            let content = name
+            content += (args.length !== 0) ? ' ' + args.join(' ') : ''
+            MessageModel.saveMsg(new MessageModel.Message({label, content, fromId}))            
+          }
           let c = new Command({name, args, fromId, save, send, wc, bot,
             twitterStream, slackStream, users})
           c.exec()
@@ -92,87 +100,23 @@ mongoose.connection.on('connected', () => {
               users = c.getUsers()
             })
         })
-      } else if (slackStream !== null) {
-        slackStream.sendToSlack({message: '[From netfluxChat] '+ str, id: fromId})
+      } else if (slackStream !== null) slackStream.sendToSlack({message: str, id: fromId})
+      if (save && label === MESSAGE) {
+        MessageModel.saveMsg(new MessageModel.Message({label, content: str, fromId}))
       }
     }
 
-    // let analyse = (content, fromId) => {
-    //   let label = MESSAGE
-    //   var words = content.split(' ')
-    //   for (var word of words) {
-    //     if (word.indexOf('/') !== -1) {
-    //       var command = word.slice(1, word.length)
-    //       execCommand(command)
-    //       label = COMMAND
-    //     }
-    //   }
-    //   if (save) {
-    //     let m = new MessageModel.Message({label, content, fromId})
-    //     MessageModel.saveMsg(m)
-    //   }
-    // }
-
-    // case 'saved_data':
-    //   MessageModel.getAllData().then((messages) => {
-    //     let nbMsg = messages.length
-    //     send('I have saved ' + nbMsg + ' messages')
-    //     messages.forEach((msg, index) => {
-    //       console.log(msg)
-    //       let cpt = (nbMsg >= 10 && index < 9) ? '(0' : '('
-    //       cpt += (index + 1) + '/' + nbMsg + ')'
-    //       let content = (netfluxChat) ? msg.data.content : msg.content
-    //       let date = formatDate(msg.date)
-    //       switch(msg.label){
-    //         case MESSAGE:
-    //           send(cpt + ' [' + date + '] [From ' + msg.fromId + '] Message: ' + content)
-    //           break
-    //         case COMMAND:
-    //           send(cpt + ' [' + date + '] [From ' + msg.fromId + '] Command: ' + content)
-    //           break
-    //         case JOIN:
-    //           send(cpt + ' [' + date + '] Join: ' + content)
-    //           break
-    //         case LEAVE:
-    //           send(cpt + ' [' + date + '] Leave: ' + content)
-    //           break
-    //       }
-    //     })
-    //   })
-    //   break
-
-
-    let formatDate = (date) => {
-      let day = date.getDate()
-      day = (day < 10) ? '0' + day : day
-      let month = (date.getMonth() + 1)
-      month = (month < 10) ? '0' + month : month
-      let year = date.getFullYear()
-      let hours = date.getHours()
-      hours = (hours < 10) ? '0' + hours : hours
-      let minutes = date.getMinutes()
-      minutes = (minutes < 10) ? '0' + minutes : minutes
-      let seconds = date.getSeconds()
-      seconds = (seconds < 10) ? '0' + seconds : seconds
-      return '' + day + '/' + month + '/' + year + ' ' +
-        hours + ':' + minutes + ':' + seconds
-    }
-
-    hello()
 
     wc.onJoining = (id) => {
-      let jp = new MessageModel.Message({label: JOIN, content: id})
       if (save) {
-        MessageModel.saveMsg(jp).onResolve(() => {
-          send('Welcome')
-        })
+        MessageModel.saveMsg(new MessageModel.Message({label: JOIN, content: id}))
+          .onResolve(() => send('Welcome'))
       }
       else send('Welcome')
     }
 
     wc.onLeaving = (id) => {
-      let jp = new MessageModel.Message({label: LEAVE, content: id})
-      if (save) MessageModel.saveMsg(jp).onResolve(() => {})
+      if (save) MessageModel.saveMsg(new MessageModel.Message({label: LEAVE, content: id}))
     }
 
     wc.onMessage = (id, msg) => {
@@ -181,5 +125,7 @@ mongoose.connection.on('connected', () => {
       else content = msg
       analyse(content, id)
     }
+
+    hello()
   }
 })
