@@ -210,6 +210,7 @@ class Command {
     return new Promise((resolve, reject) => {
       let help = false
       let stop = false
+      let user = false
       let message = (!first) ? '' : 'Hello I\'m a bot'
       let channel = '#test'
       let users = this.getUsers()
@@ -223,7 +224,10 @@ class Command {
           channel = (array[index + 1].indexOf('\#') > -1) ? array[index + 1]
             : "#" + array[index + 1]
         }
-        else if (arg.match('-(u|user)')) this.setUser(this.getfromId(), array[index + 1])
+        else if (arg.match('-(u|user)')) {
+          this.setUser(this.getfromId(), array[index + 1])
+          user = true
+        }
         else if (arg.match('-(s|stop)')) stop = true
       })
       if (!help) {
@@ -235,14 +239,21 @@ class Command {
               this.send('Listen and send all message from and to channel {' + slack.getChannel() + '}')
               this.setSlackStream(slack)
               resolve()
-            }).catch((reason) => console.log(reason))
-          } else if (message !== '') slack.sendToSlack({message, channel, users, id: this.getfromId()})
+            }).catch((reason) => reject(reason))
+          } else if (message !== '') {
+            slack.sendToSlack({message, channel, users, id: this.getfromId()})
+            resolve()
+          }
         } else {
           slack.close()
           this.setSlackStream(null)
+          resolve()
         }
-      } else this.helpSlack()
-      resolve()
+      } else {
+        this.helpSlack()
+        resolve()
+      }
+      if (user) resolve()
     })
   }
 
