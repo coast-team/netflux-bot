@@ -2,7 +2,26 @@ let TwitterStream = require('./TwitterStream').TwitterStream
 let Location = require('./Location').Location
 let SlackStream = require('./SlackStream').SlackStream
 
+/**
+  * Represents a command that can be execute by the server
+  * The choice of the command is made in function of the name in the settings
+  */
 class Command {
+  /**
+   * *Command* constructor. *Command* can be parameterized with options like name, arguments, ...
+   * @param  {Object} [options] *Command* configuration.
+   * @param  {string} [options.name=''] Name of the command.
+   * @param  {Array} [options.args=[]] Arguments for the command.
+   * @param  {number} [options.fromId=0] Peer id who send the command.
+   * @param  {boolean} [options.save=false] Saving status of the bot server.
+   * @param  {Object} [options.send=null] Send function of the bot server.
+   * @param  {Object} [options.wc=null] WebChannel where the bot is and the command send.
+   * @param  {Object} [options.bot=null] Bot itself.
+   * @param  {Object} [options.twitterStream=null] Stream object for a twitter connection.
+   * @param  {Object} [options.slackStream=null] Stream object for a slack connection.
+   * @param  {Object} [options.users=null] Map of users (Peer id => name) for the slack connection.
+   * @returns {Command} *Command* to execute.
+   */
   constructor(options = {}) {
     this.defaults = {
       name: '',
@@ -17,9 +36,12 @@ class Command {
       users: null
     }
     this.settings = Object.assign({}, this.defaults, options)
-    this.slackLaunched = false
   }
 
+  /**
+    * Execute the command in function of it name.
+    * @return {Promise} It resolves once the command is complete.
+    */
   exec () {
     switch (this.getName()) {
       case 'server':
@@ -41,7 +63,11 @@ class Command {
     }
   }
 
-  //COMMANDS
+  // COMMANDS
+  /**
+    * Command to check the status of the server.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdServer () {
     return new Promise((resolve, reject) => {
       let help = false
@@ -54,6 +80,10 @@ class Command {
     })
   }
 
+  /**
+    * Command to save all message in a mongo database.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdSave () {
     return new Promise((resolve, reject) => {
       let stop = false
@@ -79,51 +109,10 @@ class Command {
     })
   }
 
-  // TODO
-  // case 'saved_data':
-  //   MessageModel.getAllData().then((messages) => {
-  //     let nbMsg = messages.length
-  //     send('I have saved ' + nbMsg + ' messages')
-  //     messages.forEach((msg, index) => {
-  //       console.log(msg)
-  //       let cpt = (nbMsg >= 10 && index < 9) ? '(0' : '('
-  //       cpt += (index + 1) + '/' + nbMsg + ')'
-  //       let content = (netfluxChat) ? msg.data.content : msg.content
-  //       let date = formatDate(msg.date)
-  //       switch(msg.label){
-  //         case MESSAGE:
-  //           send(cpt + ' [' + date + '] [From ' + msg.fromId + '] Message: ' + content)
-  //           break
-  //         case COMMAND:
-  //           send(cpt + ' [' + date + '] [From ' + msg.fromId + '] Command: ' + content)
-  //           break
-  //         case JOIN:
-  //           send(cpt + ' [' + date + '] Join: ' + content)
-  //           break
-  //         case LEAVE:
-  //           send(cpt + ' [' + date + '] Leave: ' + content)
-  //           break
-  //       }
-  //     })
-  //   })
-  //   break
-
-  // let formatDate = (date) => {
-  //   let day = date.getDate()
-  //   day = (day < 10) ? '0' + day : day
-  //   let month = (date.getMonth() + 1)
-  //   month = (month < 10) ? '0' + month : month
-  //   let year = date.getFullYear()
-  //   let hours = date.getHours()
-  //   hours = (hours < 10) ? '0' + hours : hours
-  //   let minutes = date.getMinutes()
-  //   minutes = (minutes < 10) ? '0' + minutes : minutes
-  //   let seconds = date.getSeconds()
-  //   seconds = (seconds < 10) ? '0' + seconds : seconds
-  //   return '' + day + '/' + month + '/' + year + ' ' +
-  //     hours + ':' + minutes + ':' + seconds
-  // }
-
+  /**
+    * Command to kick the bot server from the WebChannel.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdKick () {
     return new Promise((resolve, reject) => {
       let help = false
@@ -137,6 +126,10 @@ class Command {
     })
   }
 
+  /**
+    * Command to send informations about all the available commands.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdHelp () {
     return new Promise((resolve, reject) => {
       let msgs = [
@@ -154,6 +147,10 @@ class Command {
     })
   }
 
+  /**
+    * Command to stream tweets from twitter from a user or that match a query.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdTwitter () {
     return new Promise((resolve, reject) => {
       let users = []
@@ -183,6 +180,10 @@ class Command {
     })
   }
 
+  /**
+    * Command to get the latitude and the longitude of a location in argument.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdLocation () {
     return new Promise((resolve, reject) => {
       let help = false
@@ -205,6 +206,14 @@ class Command {
     })
   }
 
+  /**
+    * Command to establish a connection with slack.
+    * Then all message from slack will be send on the WebChannel and
+    * all message from WebChannel will be send to slack on the fixed channel by the bot.
+    * The option (-c|--channel) CHANNEL fix the channel where the messages will be listen and send.
+    * The option (-u|--user) USER add/replace the name USER to the user who send the command
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdSlack () {
     let first = (this.getSlackStream() === null)
     return new Promise((resolve, reject) => {
@@ -257,6 +266,11 @@ class Command {
     })
   }
 
+  /**
+    * If the name of the command instanciate doesn't match one of the list
+    * this function is called.
+    * @return {Promise} It resolves once the command is complete.
+    */
   cmdUnknown () {
     return new Promise((resolve, reject) => {
       this.send('Unknown command {/' + this.getName() + '}')
@@ -264,6 +278,9 @@ class Command {
     })
   }
 
+  /**
+    * Send on the WebChannel a help message for the server command.
+    */
   helpServer () {
     let msgs = [
       'Help for the command {/server}:',
@@ -273,6 +290,9 @@ class Command {
     this.sendArray(msgs)
   }
 
+  /**
+    * Send on the WebChannel a help message for the save command.
+    */
   helpSave () {
     let msgs = [
       'Help for the command {/save}:',
@@ -283,6 +303,9 @@ class Command {
     this.sendArray(msgs)
   }
 
+  /**
+    * Send on the WebChannel a help message for the kick command.
+    */
   helpKick () {
     let msgs = [
       'Help for the command {/kick}:',
@@ -292,6 +315,9 @@ class Command {
     this.sendArray(msgs)
   }
 
+  /**
+    * Send on the WebChannel a help message for the twitter command.
+    */
   helpTwitter () {
     let msgs = [
       'Help for the command {/twitter}:',
@@ -303,6 +329,9 @@ class Command {
     this.sendArray(msgs)
   }
 
+  /**
+    * Send on the WebChannel a help message for the location command.
+    */
   helpLocation () {
     let msgs = [
       'Help for the command {/location}:',
@@ -312,6 +341,9 @@ class Command {
     this.sendArray(msgs)
   }
 
+  /**
+    * Send on the WebChannel a help message for the location command.
+    */
   helpSlack () {
     let msgs = [
       'Help for the command {/slack}:',
@@ -325,65 +357,125 @@ class Command {
     this.sendArray(msgs)
   }
 
+  /**
+    * Send to WebChannel a succession of messages in an array.
+    * @param {Array} Array of messages to be send
+    */
   sendArray (arr) {
     arr.forEach((msg, index, array) => {
       this.send(msg)
     })
   }
 
-  //GETTERS & SETTERS
+  // GETTERS & SETTERS
+  /**
+    * Get the name of the command.
+    * @return {string} Name of the command.
+    */
   getName () {
     return this.settings.name
   }
 
+  /**
+    * Get the arguments of the command.
+    * @return {Array} Arguments of the command.
+    */
   getArgs () {
     return this.settings.args
   }
 
+  /**
+    * Get the id of the peer who send the command.
+    * @return {number} Id of the peer who send the command.
+    */
   getfromId () {
     return this.settings.fromId
   }
 
+  /**
+    * Get the saving status of the bot server.
+    * @return {boolean} Saving status of the bot server.
+    */
   getSave () {
     return this.settings.save
   }
 
+  /**
+    * Set the saving status of the bot server.
+    * @param {boolean} Saving status of the bot server.
+    */
   setSave (value) {
     this.settings.save = value
   }
 
+  /**
+    * Alias of the send method of the bot server.
+    */
   send (str) {
     this.settings.send(str)
   }
 
+  /**
+    * Get the WebChannel where the bot is and the command send.
+    * @return {Object} WebChannel where the bot is and the command send.
+    */
   getWebChannel () {
     return this.settings.wc
   }
 
+  /**
+    * Get the bot server
+    * @return {Object} Bot server.
+    */
   getBot () {
     return this.settings.bot
   }
 
+  /**
+    * Get the stream object for the twitter connection.
+    * @return {Object} Stream object for the twitter connection.
+    */
   getTwitterStream () {
     return this.settings.twitterStream
   }
 
+  /**
+    * Set the stream object for the twitter connection.
+    * @param {Object} Stream object for the twitter connection.
+    */
   setTwitterStream (stream) {
     this.settings.twitterStream = stream
   }
 
+  /**
+    * Get the stream object for the slack connection.
+    * @return {Object} Stream object for the slack connection.
+    */
   getSlackStream () {
     return this.settings.slackStream
   }
 
+  /**
+    * Set the stream object for the slack connection.
+    * @return {Object} Stream object for the slack connection.
+    */
   setSlackStream (stream) {
     this.settings.slackStream = stream
   }
 
+  /**
+    * Get the map of users (Peer id => name) for the slack connection.
+    * @return {Object} Map of users (Peer id => name) for the slack connection.
+    */
   getUsers () {
     return this.settings.users
   }
 
+  /**
+    * Add a user in the map of users (Peer id => name) for the slack connection.
+    * @param {number} Id of the user to be add in the map of users
+    * @param {string} Name of the user to be add in the map of users
+    */
   setUser (id, name) {
     this.settings.users.set(id, name)
   }
