@@ -1,54 +1,64 @@
-var mongoose = require('mongoose')
+let Message, saveMsg, saveMessages, nbMessages, getAllData
 
-var messageSchema = new mongoose.Schema({
-  label: String,
-  content: String,
-  fromId: Number,
-  date: { type: Date, default: Date.now }
-})
+try {
+  var mongoose = require('mongoose')
 
-var Message = mongoose.model('messages', messageSchema)
-
-function saveMsg (msg) {
-  return msg.save((err) => {
-    if (err) throw err
+  var messageSchema = new mongoose.Schema({
+    label: String,
+    content: String,
+    fromId: Number,
+    date: { type: Date, default: Date.now }
   })
-}
 
-function saveMessages (messages) {
-  return new Promise((resolve, reject) => {
-    var resPro = 0
-    for (var msg of messages) {
-      saveMsg(msg).onResolve(() => {
-        resPro++
-        if (resPro === messages.length) resolve()
+  Message = mongoose.model('messages', messageSchema)
+
+  saveMsg = (msg) => {
+    return msg.save((err) => {
+      if (err) throw err
+    })
+  }
+
+  saveMessages  = (messages) => {
+    return new Promise((resolve, reject) => {
+      var resPro = 0
+      for (var msg of messages) {
+        saveMsg(msg).onResolve(() => {
+          resPro++
+          if (resPro === messages.length) resolve()
+        })
+      }
+    })
+  }
+
+  nbMessages = () => {
+    return new Promise((resolve, reject) => {
+      var size = 0
+      Message.find(null).exec((err, res) => {
+        if (err) reject(err)
+        size = res.length
+      }).onResolve(() => {
+        resolve(size)
       })
-    }
-  })
-}
-
-function nbMessages () {
-  return new Promise((resolve, reject) => {
-    var size = 0
-    Message.find(null).exec((err, res) => {
-      if (err) reject(err)
-      size = res.length
-    }).onResolve(() => {
-      resolve(size)
     })
-  })
-}
+  }
 
-function getAllData () {
-  return new Promise((resolve, reject) => {
-    var messages = []
-    Message.find(null).exec((err, res) => {
-      if (err) reject(err)
-      messages = res
-    }).onResolve(() => {
-      resolve(messages)
+  getAllData = () => {
+    return new Promise((resolve, reject) => {
+      var messages = []
+      Message.find(null).exec((err, res) => {
+        if (err) reject(err)
+        messages = res
+      }).onResolve(() => {
+        resolve(messages)
+      })
     })
-  })
+  }
+} catch (err) {
+  saveMsg = (msg) => {}
+  saveMessages  = (messages) => {}
+  nbMessages = () => {}
+  getAllData = () => {}
+  Message = Object
 }
 
 exports.Message = Message

@@ -1,14 +1,14 @@
 var fs =  require('fs')
 
 if (!process.env.TWITTER_CONSUMER_KEY) {
-  if (!fs.existsSync('twitter.json')) {
-    console.log('Create a twitter.json with your credentials based on the twitter-sample.json file.')
+  if (!fs.existsSync('./tokens/twitter.json')) {
+    console.log('Create a tokens/twitter.json with your credentials based on the samples/twitter-sample.json file.')
     process.exit(1)
   } else {
-    process.env.TWITTER_CONSUMER_KEY = require('./twitter').consumer_key
-    process.env.TWITTER_CONSUMER_SECRET = require('./twitter').consumer_secret;
-    process.env.TWITTER_ACCESS_TOKEN_KEY = require('./twitter').access_token_key;
-    process.env.TWITTER_ACCESS_TOKEN_SECRET = require('./twitter').access_token_secret;
+    process.env.TWITTER_CONSUMER_KEY = require('../tokens/twitter').consumer_key
+    process.env.TWITTER_CONSUMER_SECRET = require('../tokens/twitter').consumer_secret;
+    process.env.TWITTER_ACCESS_TOKEN_KEY = require('../tokens/twitter').access_token_key;
+    process.env.TWITTER_ACCESS_TOKEN_SECRET = require('../tokens/twitter').access_token_secret;
   }
 }
 

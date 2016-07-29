@@ -46,7 +46,7 @@ class Command {
     return new Promise((resolve, reject) => {
       let help = false
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(h|help)')) help = true
+        if (arg.match('-(h|-help)')) help = true
       })
       if (help) this.helpServer()
       else this.send('I\'m here waiting for your commands [saving = ' + this.getSave() + ']')
@@ -59,8 +59,8 @@ class Command {
       let stop = false
       let help = false
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(s|stop)')) stop = true
-        else if (arg.match('-(h|help)')) help = true
+        if (arg.match('-(s|-stop)')) stop = true
+        else if (arg.match('-(h|-help)')) help = true
       })
       let msgs = []
       if (help) {
@@ -128,7 +128,7 @@ class Command {
     return new Promise((resolve, reject) => {
       let help = false
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(h|help)')) help = true
+        if (arg.match('-(h|-help)')) help = true
       })
       if (help) this.helpKick()
       else this.send('Ok I leave...')
@@ -162,10 +162,10 @@ class Command {
       let stop = false
       let help = false
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(u|user)')) users.push(array[index + 1])
-        else if (arg.match('-(q|query)')) queries.push(array[index + 1])
-        else if (arg.match('-(s|stop)')) stop = true
-        else if (arg.match('-(h|help)')) help = true
+        if (arg.match('-(u|-user)')) users.push(array[index + 1])
+        else if (arg.match('-(q|-query)')) queries.push(array[index + 1])
+        else if (arg.match('-(s|-stop)')) stop = true
+        else if (arg.match('-(h|-help)')) help = true
       })
       if (!help && this.getArgs().length !== 0) {
         let ts = new TwitterStream({users, queries, stream, send: this.settings.send})
@@ -187,7 +187,7 @@ class Command {
     return new Promise((resolve, reject) => {
       let help = false
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(h|help)')) help = true
+        if (arg.match('-(h|-help)')) help = true
       })
       if (!help && this.getArgs().length !== 0) {
         let address = this.getArgs().join(' ')
@@ -215,20 +215,20 @@ class Command {
       let channel = '#test'
       let users = this.getUsers()
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(h|help)')) help = true
-        else if (arg.match('-(m|message)')) {
+        if (arg.match('-(h|-help)')) help = true
+        else if (arg.match('-(m|-message)')) {
           message = (array[index + 1].indexOf('\"') > -1) ? array[index + 1].slice(1, array.length - 1)
             : array[index + 1]
         }
-        else if (arg.match('-(c|channel)')) {
+        else if (arg.match('-(c|-channel)')) {
           channel = (array[index + 1].indexOf('\#') > -1) ? array[index + 1]
             : "#" + array[index + 1]
         }
-        else if (arg.match('-(u|user)')) {
+        else if (arg.match('-(u|-user)')) {
           this.setUser(this.getfromId(), array[index + 1])
           user = true
         }
-        else if (arg.match('-(s|stop)')) stop = true
+        else if (arg.match('-(s|-stop)')) stop = true
       })
       if (!help) {
         let slack = (!first) ? this.getSlackStream()
@@ -268,7 +268,7 @@ class Command {
     let msgs = [
       'Help for the command {/server}:',
       '{/server} Command to verify the status of the bot server',
-      '{/server -h} or {/server -help} Display this message'
+      '{/server -h} or {/server --help} Display this message'
     ]
     this.sendArray(msgs)
   }
@@ -277,8 +277,8 @@ class Command {
     let msgs = [
       'Help for the command {/save}:',
       '{/save} Command to start saving message in a database',
-      '{/save -s} or {/save -stop} Command to stop saving message in a database',
-      '{/save -h} or {/save -help} Display this message'
+      '{/save -s} or {/save --stop} Command to stop saving message in a database',
+      '{/save -h} or {/save --help} Display this message'
     ]
     this.sendArray(msgs)
   }
@@ -287,7 +287,7 @@ class Command {
     let msgs = [
       'Help for the command {/kick}:',
       '{/kick} Command to kick the bot server from the WebChannel',
-      '{/kick -h} or {/kick -help} Display this message'
+      '{/kick -h} or {/kick --help} Display this message'
     ]
     this.sendArray(msgs)
   }
@@ -295,10 +295,10 @@ class Command {
   helpTwitter () {
     let msgs = [
       'Help for the command {/twitter}:',
-      '{/twitter -u USER} or {/twitter -user USER} Command to stream all messages post by {USER}',
-      '{/twitter -q QUERY} or {/twitter -query QUERY} Command to stream all messages which contains {QUERY}',
-      '{/twitter -s} or {/twitter -stop} Command to stop streaming all messages',
-      '{/twitter -h} or {/twitter -help} Display this message'
+      '{/twitter -u USER} or {/twitter --user USER} Command to stream all messages post by {USER}',
+      '{/twitter -q QUERY} or {/twitter --query QUERY} Command to stream all messages which contains {QUERY}',
+      '{/twitter -s} or {/twitter --stop} Command to stop streaming all messages',
+      '{/twitter -h} or {/twitter --help} Display this message'
     ]
     this.sendArray(msgs)
   }
@@ -307,7 +307,7 @@ class Command {
     let msgs = [
       'Help for the command {/location}:',
       '{/location ADDRESS} Command to get the coordinates of the {ADDRESS}',
-      '{/location -h} or {/location -help} Display this message'
+      '{/location -h} or {/location --help} Display this message'
     ]
     this.sendArray(msgs)
   }
@@ -316,11 +316,11 @@ class Command {
     let msgs = [
       'Help for the command {/slack}:',
       '{/slack} Command to start sending and listenning messages to and from Slack',
-      '{/slack -m} or {/slack -message} Command to send a {MESSAGE} on slack',
-      '{/slack -c} or {/slack -channel} Command to change the channel ' +
+      '{/slack -m} or {/slack --message} Command to send a {MESSAGE} on slack',
+      '{/slack -c} or {/slack --channel} Command to change the channel ' +
       'where the messages are send (default = #general)',
-      '{/slack -s} or {/slack -stop} Command to stop sending and listenning messages to and from Slack',
-      '{/slack -h} or {/slack -help} Display this message'
+      '{/slack -s} or {/slack --stop} Command to stop sending and listenning messages to and from Slack',
+      '{/slack -h} or {/slack --help} Display this message'
     ]
     this.sendArray(msgs)
   }

@@ -2,13 +2,13 @@ var fs =  require('fs')
 var request = require('request')
 
 if (!process.env.SLACK_ACCESS_TOKEN_RTM) {
-  if (!fs.existsSync('twitter.json')) {
-    console.log('Create a slack.json with your credentials based on the slack-sample.json file.')
+  if (!fs.existsSync('./tokens/twitter.json')) {
+    console.log('Create a tokens/slack.json with your credentials based on the samples/slack-sample.json file.')
     process.exit(1)
   } else {
-    process.env.SLACK_ACCESS_TOKEN_RTM = require('./slack').tokenRTM
-    process.env.SLACK_ACCESS_TOKEN_WEB = require('./slack').tokenWeb
-    process.env.WEBHOOK_URL = require('./slack').webhookUrl
+    process.env.SLACK_ACCESS_TOKEN_RTM = require('../tokens/slack').tokenRTM
+    process.env.SLACK_ACCESS_TOKEN_WEB = require('../tokens/slack').tokenWeb
+    process.env.WEBHOOK_URL = require('../tokens/slack').webhookUrl
   }
 }
 

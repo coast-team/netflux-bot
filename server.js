@@ -1,6 +1,6 @@
 'use strict'
 
-let Command = require('./Command').Command
+let Command = require('./commands/Command').Command
 
 let host = '127.0.0.1'
 let port = 9000
@@ -30,15 +30,9 @@ process.argv.forEach((value, index, array) => {
 })
 
 let netflux = require('netflux')
-
-let mongoose = require('mongoose')
 let MessageModel = require('./model/message')
 
-mongoose.connect('mongodb://localhost/netfluxBotLog', function (err) {
-  if (err) { throw err }
-})
-
-mongoose.connection.on('connected', () => {
+let init = () => {
   let bot = new netflux.Bot()
   bot.listen({host, port, log: true})
     .then(() => {
@@ -50,8 +44,15 @@ mongoose.connection.on('connected', () => {
 
     let send = (msg, toIdUser) => {
       if (netfluxChat) {
-        var message = {'type': 'message', 'data': {'fromIdUser': id, 'toIdUser': toIdUser || '0',
-        'content': msg, 'date': Date.now()}}
+        var message = {
+          'type': 'message',
+          'data': {
+            'fromIdUser': id,
+            'toIdUser': toIdUser || '0',
+            'content': msg,
+            'date': Date.now()
+          }
+        }
         wc.send(JSON.stringify(message))
       } else wc.send(msg)
       if (save) MessageModel.saveMsg(new MessageModel.Message({label: MESSAGE, content: msg, fromId: id}))
@@ -59,8 +60,19 @@ mongoose.connection.on('connected', () => {
 
     let hello = () => {
       if (netfluxChat) {
-        var userInfos = {'type': 'userInfos', 'data': {'backgroundColor': '', 'textColor': '58ACFA',
-        'whispColor': 'bbbbbb', 'id': '' + id, 'peerId': id, 'nickname': 'Server :desktop:', 'online': true}}
+        var userInfos = {
+          'type': 'userInfos',
+          'data': {
+            'backgroundColor': '',
+            'textColor': '58ACFA',
+            'whispColor': 'bbbbbb',
+            'id': '' + id,
+            'peerId': id,
+            'nickname':
+            'Server :desktop:',
+            'online': true
+          }
+        }
         wc.send(JSON.stringify(userInfos))
       }
       send('Hello, I\'m a server')
@@ -88,7 +100,7 @@ mongoose.connection.on('connected', () => {
           if (save) {
             let content = name
             content += (args.length !== 0) ? ' ' + args.join(' ') : ''
-            MessageModel.saveMsg(new MessageModel.Message({label, content, fromId}))            
+            MessageModel.saveMsg(new MessageModel.Message({label, content, fromId}))
           }
           let c = new Command({name, args, fromId, save, send, wc, bot,
             twitterStream, slackStream, users})
@@ -128,4 +140,18 @@ mongoose.connection.on('connected', () => {
 
     hello()
   }
-})
+}
+
+try {
+  let mongoose = require('mongoose')
+
+  mongoose.connect('mongodb://localhost/netfluxBotLog', function (err) {
+    if (err) { throw err }
+  })
+
+  mongoose.connection.on('connected', () => {
+    init()
+  })
+} catch (err) {
+  init()
+}

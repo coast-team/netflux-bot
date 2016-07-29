@@ -2,4 +2,3 @@ node_modules
 google.json
 slack.json
 twitter.json
-test*.js
