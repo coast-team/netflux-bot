@@ -8,7 +8,7 @@ Tested on
  - Raspberry Pi 3
  - Raspbian GNU/Linux 8.0 (jessie)
 
-In this guide we install the following appications:
+In this guide we install the following applications:
 
  - NodeJS: 6.2.2
  - Netflux: latest
@@ -44,7 +44,7 @@ Howover you can specify an host and a port with the options `(-h|--host) HOST` a
     node server.js -h 192.168.0.2 -p 8080
 
 There are also other options:
-  - `(-nc|--netfluxChat) BOOLEAN`: Enable/Disable Netflux-chat protocol for the messages
+  - `(-nc|--netfluxChat) BOOLEAN`: Enable/Disable Netflux-chat protocol for the message (The file `demo/index.html` can be used to test Netflux-bot with the option `-nc false`)
   - `(-s|--save) BOOLEAN`: Enable/Disable default saving status of the bot
 
 ### On system boot
