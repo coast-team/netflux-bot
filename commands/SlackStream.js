@@ -1,7 +1,7 @@
 var fs =  require('fs')
 var request = require('request')
 
-// Check if the file netflux-bot/tokens/slack.jon exists and get the tokens
+// Check if the file netflux-bot/tokens/slack.json exists and get the tokens
 if (!process.env.SLACK_ACCESS_TOKEN_RTM) {
   if (!fs.existsSync('./tokens/slack.json')) {
     console.log('Create a tokens/slack.json with your credentials based on the samples/slack-sample.json file.')
