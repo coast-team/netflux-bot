@@ -219,6 +219,7 @@ class Command {
     let first = (this.getSlackStream() === null)
     return new Promise((resolve, reject) => {
       let ch = false
+      let help = false
       let message = (!first) ? '' : 'Hello I\'m a bot'
       let channel = '#test'
       let users = this.getUsers()
@@ -236,6 +237,7 @@ class Command {
       }
       this.getArgs().forEach((arg, index, array) => {
         if (arg.match('-(h|-help)')) {
+          help = true
           this.helpSlack()
           resolve()
         }
@@ -259,14 +261,16 @@ class Command {
           resolve()
         }
       })
-      if (first) {
-        start(message, channel, users)
-      } else if (message !== '') {
-        this.getSlackStream().sendToSlack({message, channel, users, id: this.getfromId()})
-        resolve()
-      } else if (ch) {
-        close()
-        start('Hello I\'m a bot', channel, users)
+      if (!help) {
+        if (first) {
+          start(message, channel, users)
+        } else if (message !== '') {
+          this.getSlackStream().sendToSlack({message, channel, users, id: this.getfromId()})
+          resolve()
+        } else if (ch) {
+          close()
+          start('Hello I\'m a bot', channel, users)
+        }
       }
     })
   }
@@ -327,7 +331,8 @@ class Command {
     let msgs = [
       'Help for the command {/twitter}:',
       '{/twitter -u USER} or {/twitter --user USER} Command to stream all messages post by {USER}',
-      '{/twitter -q QUERY} or {/twitter --query QUERY} Command to stream all messages which contains {QUERY}',
+      '{/twitter -q QUERY} or {/twitter --query QUERY} Command to stream all messages',
+      'which contains {QUERY}',
       '{/twitter -s} or {/twitter --stop} Command to stop streaming all messages',
       '{/twitter -h} or {/twitter --help} Display this message'
     ]
@@ -353,11 +358,12 @@ class Command {
     let msgs = [
       'Help for the command {/slack}:',
       '{/slack} Command to start sending and listenning messages to and from Slack',
-      '{/slack -m} or {/slack --message} Command to send a {MESSAGE} on slack',
-      '{/slack -c} or {/slack --channel} Command to change the channel ' +
+      '{/slack -m MESSAGE} or {/slack --message MESSAGE} Command to send a {MESSAGE} on slack',
+      '{/slack -c CHANNEL} or {/slack --channel CHANNEL} Command to change the channel',
       'where the messages are send (default = #general)',
-      '{/slack -u} or {/slack --user} Command to change the name that will sign the messages',
-      '{/slack -s} or {/slack --stop} Command to stop sending and listenning messages to and from Slack',
+      '{/slack -u USER} or {/slack --user USER} Command to change the name that will sign the messages',
+      '{/slack -s} or {/slack --stop} Command to stop sending and listenning messages',
+      'to and from Slack',
       '{/slack -h} or {/slack --help} Display this message'
     ]
     this.sendArray(msgs)

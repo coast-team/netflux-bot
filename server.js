@@ -105,7 +105,7 @@ let init = () => {
       */
     let analyse = (str, fromId) => {
       let label = MESSAGE
-      let regexCommands = /\/(\w+)\s*((?:(?:([\w\d]|\#)+|\"([^"]|\')+\"|-\w+)\s*)*)/g
+      let regexCommands = /\/(\w+)\s*((?:(?:([\w\d]|\#)+|\"([^"]|\')+\"|-(\w+|-\w+))\s*)*)/g
       let regexArguments = /(?:([\w\d]|\#)+|\"([^"]|\')+\"|-\w+)/g
       let commands = str.match(regexCommands)
       if (commands) {
