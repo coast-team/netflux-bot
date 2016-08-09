@@ -217,52 +217,56 @@ class Command {
   cmdSlack () {
     let first = (this.getSlackStream() === null)
     return new Promise((resolve, reject) => {
-      let help = false
-      let stop = false
-      let user = false
+      let ch = false
       let message = (!first) ? '' : 'Hello I\'m a bot'
       let channel = '#test'
       let users = this.getUsers()
+      let start = (message, channel, users) => {
+        let slack = new SlackStream({message, channel, users, send: this.settings.send})
+        slack.launch().then(() => {
+          this.send('Listen and send all message from and to channel {' + slack.getChannel() + '}')
+          this.setSlackStream(slack)
+          resolve()
+        }).catch((reason) => reject(reason))
+      }
+      let close = () => {
+        this.getSlackStream().close()
+        this.setSlackStream(null)
+      }
       this.getArgs().forEach((arg, index, array) => {
-        if (arg.match('-(h|-help)')) help = true
+        if (arg.match('-(h|-help)')) {
+          this.helpSlack()
+          resolve()
+        }
         else if (arg.match('-(m|-message)')) {
-          message = (array[index + 1].indexOf('\"') > -1) ? array[index + 1].slice(1, array.length - 1)
+          message = (array[index + 1].indexOf('\"') > -1)
+            ? array[index + 1].slice(1, array.length - 1)
             : array[index + 1]
         }
         else if (arg.match('-(c|-channel)')) {
-          channel = (array[index + 1].indexOf('\#') > -1) ? array[index + 1]
+          channel = (array[index + 1].indexOf('\#') > -1)
+            ? array[index + 1]
             : "#" + array[index + 1]
+          ch = true
         }
         else if (arg.match('-(u|-user)')) {
           this.setUser(this.getfromId(), array[index + 1])
-          user = true
-        }
-        else if (arg.match('-(s|-stop)')) stop = true
-      })
-      if (!help) {
-        let slack = (!first) ? this.getSlackStream()
-          : new SlackStream({message, channel, users, send: this.settings.send})
-        if (!stop) {
-          if (first) {
-            slack.launch().then(() => {
-              this.send('Listen and send all message from and to channel {' + slack.getChannel() + '}')
-              this.setSlackStream(slack)
-              resolve()
-            }).catch((reason) => reject(reason))
-          } else if (message !== '') {
-            slack.sendToSlack({message, channel, users, id: this.getfromId()})
-            resolve()
-          }
-        } else {
-          slack.close()
-          this.setSlackStream(null)
           resolve()
         }
-      } else {
-        this.helpSlack()
+        else if (arg.match('-(s|-stop)') && !first) {
+          close()
+          resolve()
+        }
+      })
+      if (first) {
+        start(message, channel, users)
+      } else if (message !== '') {
+        this.getSlackStream().sendToSlack({message, channel, users, id: this.getfromId()})
         resolve()
+      } else if (ch) {
+        close()
+        start('Hello I\'m a bot', channel, users)
       }
-      if (user) resolve()
     })
   }
 
@@ -351,6 +355,7 @@ class Command {
       '{/slack -m} or {/slack --message} Command to send a {MESSAGE} on slack',
       '{/slack -c} or {/slack --channel} Command to change the channel ' +
       'where the messages are send (default = #general)',
+      '{/slack -u} or {/slack --user} Command to change the name that will sign the messages',
       '{/slack -s} or {/slack --stop} Command to stop sending and listenning messages to and from Slack',
       '{/slack -h} or {/slack --help} Display this message'
     ]
