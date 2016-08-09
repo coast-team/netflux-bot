@@ -119,7 +119,7 @@ let init = () => {
             MessageModel.saveMsg(new MessageModel.Message({label, content, fromId}))
           }
           let c = new Command({name, args, fromId, save, send, wc, bot,
-            twitterStream, slackStream, users})
+            twitterStream, slackStream, users, netfluxChat})
           c.exec()
             .then(() => {
               save = c.getSave()

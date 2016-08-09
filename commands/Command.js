@@ -33,7 +33,8 @@ class Command {
       bot: null,
       twitterStream: null,
       slackStream: null,
-      users: null
+      users: null,
+      netfluxChat: false
     }
     this.settings = Object.assign({}, this.defaults, options)
   }
@@ -367,9 +368,8 @@ class Command {
     * @param {Array} Array of messages to be send
     */
   sendArray (arr) {
-    arr.forEach((msg, index, array) => {
-      this.send(msg)
-    })
+    if (this.isNetfluxChat()) this.send(arr.join('\n\n'))
+    else arr.forEach((msg, index, array) => this.send(msg))
   }
 
   // GETTERS & SETTERS
@@ -483,6 +483,10 @@ class Command {
     */
   setUser (id, name) {
     this.settings.users.set(id, name)
+  }
+
+  isNetfluxChat () {
+    return this.settings.netfluxChat
   }
 }
 
