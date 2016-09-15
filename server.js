@@ -107,7 +107,10 @@ let init = () => {
       let label = MESSAGE
       let regexCommands = /\/(\w+)\s*((?:(?:([\w\d]|\#)+|\"([^"]|\')+\"|-(\w+|-\w+))\s*)*)/g
       let regexArguments = /(?:([\w\d]|\#)+|\"([^"]|\')+\"|-\w+)/g
-      let commands = str.match(regexCommands)
+      let commands
+      if (str !== undefined && typeof str === 'string') {
+        commands = str.match(regexCommands)
+      }
       if (commands) {
         commands.forEach((cmd, index, array) => {
           label = COMMAND
@@ -163,13 +166,14 @@ let init = () => {
 try {
   let mongoose = require('mongoose')
 
-  mongoose.connect('mongodb://localhost/netfluxBotLog', function (err) {
-    if (err) { throw err }
-  })
-
-  mongoose.connection.on('connected', () => {
-    init()
-  })
+  // mongoose.connect('mongodb://localhost/netfluxBotLog', function (err) {
+  //   if (err) { throw err }
+  // })
+  //
+  // mongoose.connection.on('connected', () => {
+  //   init()
+  // })
 } catch (err) {
   init()
 }
+init()

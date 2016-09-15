@@ -1,26 +1,25 @@
 var fs =  require('fs')
+var Twitter = require('twitter')
 
+var client
 // Check if the file netflux-bot/tokens/twitter.json exists and get the tokens
 if (!process.env.TWITTER_CONSUMER_KEY) {
   if (!fs.existsSync('./tokens/twitter.json')) {
     console.log('Create a tokens/twitter.json with your credentials based on the samples/twitter-sample.json file.')
-    process.exit(1)
+    // process.exit(1)
   } else {
     process.env.TWITTER_CONSUMER_KEY = require('../tokens/twitter').consumer_key
     process.env.TWITTER_CONSUMER_SECRET = require('../tokens/twitter').consumer_secret;
     process.env.TWITTER_ACCESS_TOKEN_KEY = require('../tokens/twitter').access_token_key;
     process.env.TWITTER_ACCESS_TOKEN_SECRET = require('../tokens/twitter').access_token_secret;
+    var client = new Twitter({
+      consumer_key: process.env.TWITTER_CONSUMER_KEY,
+      consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+      access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+      access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+    })
   }
 }
-
-var Twitter = require('twitter')
-
-var client = new Twitter({
-  consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-})
 
 /**
   * Represents a connection with twitter

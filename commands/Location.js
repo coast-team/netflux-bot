@@ -1,25 +1,26 @@
 var fs =  require('fs')
+var NodeGeocoder = require('node-geocoder')
 
+var options
+var geocoder
 // Check if the file netflux-bot/tokens/google.jon exists and get the api key
 if (!process.env.GOOGLE_API_KEY) {
   if (!fs.existsSync('./tokens/google.json')) {
     console.log('Create a tokens/google.json with your credentials based on the samples/google-sample.json file.')
-    process.exit(1)
+    // process.exit(1)
   } else {
     process.env.GOOGLE_API_KEY = require('../tokens/google').api_key
+
+    options = {
+      provider: 'google',
+      httpAdapter: 'https',
+      apiKey: process.env.GOOGLE_API_KEY,
+      formatter: null
+    }
+
+    geocoder = NodeGeocoder(options)
   }
 }
-
-var NodeGeocoder = require('node-geocoder')
-
-var options = {
-  provider: 'google',
-  httpAdapter: 'https',
-  apiKey: process.env.GOOGLE_API_KEY,
-  formatter: null
-}
-
-var geocoder = NodeGeocoder(options)
 
 /**
   * Represents a location that can be execute by the server

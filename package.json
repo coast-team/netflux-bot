@@ -27,7 +27,7 @@
   "dependencies": {
     "botkit": "^0.2.2",
     "mongoose": "^4.5.2",
-    "netflux": "^0.9.0",
+    "netflux": "^0.10.6",
     "node-geocoder": "^3.13.0",
     "request": "^2.74.0",
     "text-encoding": "^0.6.0",
@@ -35,6 +35,7 @@
     "ws": "^1.1.0"
   },
   "devDependencies": {
+    "commitizen": "^2.8.6",
     "cz-conventional-changelog": "^1.1.6",
     "jasmine-node": "^1.14.5"
   },

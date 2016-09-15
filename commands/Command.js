@@ -121,8 +121,10 @@ class Command {
         if (arg.match('-(h|-help)')) help = true
       })
       if (help) this.helpKick()
-      else this.send('Ok I leave...')
-      if (!help) this.getBot().leave(this.getWebChannel())
+      else {
+        this.send('Ok I leave...')
+        this.getWebChannel().leave()
+      }
       resolve()
     })
   }

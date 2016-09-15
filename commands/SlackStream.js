@@ -1,19 +1,18 @@
 var fs =  require('fs')
 var request = require('request')
+var Botkit = require('botkit')
 
 // Check if the file netflux-bot/tokens/slack.json exists and get the tokens
 if (!process.env.SLACK_ACCESS_TOKEN_RTM) {
   if (!fs.existsSync('./tokens/slack.json')) {
     console.log('Create a tokens/slack.json with your credentials based on the samples/slack-sample.json file.')
-    process.exit(1)
+    // process.exit(1)
   } else {
     process.env.SLACK_ACCESS_TOKEN_RTM = require('../tokens/slack').tokenRTM
     process.env.SLACK_ACCESS_TOKEN_WEB = require('../tokens/slack').tokenWeb
     process.env.WEBHOOK_URL = require('../tokens/slack').webhookUrl
   }
 }
-
-var Botkit = require('botkit')
 
 /**
   * Represents a connection with slack
