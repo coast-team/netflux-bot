@@ -1,4 +1,7 @@
 # Netflux-bot
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/coast-team/netflux-chat-bot.svg)](https://greenkeeper.io/)
+
 Peer machine able to connect to a network handled by [Netflux API](https://github.com/coast-team/netflux)
 
 ----------
